@@ -169,7 +169,7 @@ class _FoodFormState extends State<FoodForm> {
           return 'Price is required';
         }
 
-        if (value.length < 3 || value.length > 500) {
+        if (value.length < 1 || value.length > 500) {
           return 'Price must be more than 3 and less than 500';
         }
 

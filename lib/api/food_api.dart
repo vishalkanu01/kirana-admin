@@ -11,6 +11,63 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
+login(Users user, AuthNotifier authNotifier) async {
+  AuthResult authResult = await FirebaseAuth.instance
+      .signInWithEmailAndPassword(email: user.email, password: user.password)
+      .catchError((error) => print(error.code));
+
+  if (authResult != null) {
+    FirebaseUser firebaseUser = authResult.user;
+
+    if (firebaseUser != null) {
+      print("Log In: $firebaseUser");
+      authNotifier.setUser(firebaseUser);
+    }
+  }
+}
+
+signup(Users user, AuthNotifier authNotifier) async {
+  AuthResult authResult = await FirebaseAuth.instance
+      .createUserWithEmailAndPassword(
+          email: user.email, password: user.password)
+      .catchError((error) => print(error.code));
+
+  if (authResult != null) {
+    UserUpdateInfo updateInfo = UserUpdateInfo();
+    updateInfo.displayName = user.displayName;
+
+    FirebaseUser firebaseUser = authResult.user;
+
+    if (firebaseUser != null) {
+      await firebaseUser.updateProfile(updateInfo);
+
+      await firebaseUser.reload();
+
+      print("Sign up: $firebaseUser");
+
+      FirebaseUser currentUser = await FirebaseAuth.instance.currentUser();
+      authNotifier.setUser(currentUser);
+    }
+  }
+}
+
+signout(AuthNotifier authNotifier) async {
+  await FirebaseAuth.instance
+      .signOut()
+      .catchError((error) => print(error.code));
+
+  authNotifier.setUser(null);
+}
+
+initializeCurrentUser(AuthNotifier authNotifier) async {
+  FirebaseUser firebaseUser = await FirebaseAuth.instance.currentUser();
+
+  if (firebaseUser != null) {
+    print(firebaseUser);
+    authNotifier.setUser(firebaseUser);
+  }
+}
+
 getUsers(AuthNotifier authNotifier) async {
   QuerySnapshot snapshot = await Firestore.instance
       .collection('users')
@@ -46,7 +103,7 @@ getFoods(FoodNotifier foodNotifier) async {
 getOrders(OrderNotifier orderNotifier) async {
   QuerySnapshot snapshot = await Firestore.instance
       .collection('Orders')
-       .orderBy("Order Time", descending: false)
+      .orderBy("Order Time", descending: false)
       .getDocuments();
 
   List<Orders> _orderList = [];

@@ -4,6 +4,8 @@ class Users {
   String id;
   String location;
   String phoneNumber;
+  String displayName;
+  String password;
 
   Users();
 
